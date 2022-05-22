@@ -1,17 +1,19 @@
 import * as React from 'react'
 import Document, { Html, Head, Main, NextScript } from 'next/document'
 import createEmotionServer from '@emotion/server/create-instance'
-import createEmotionCache from 'utils/createEmotionCache'
+import createEmotionCache from '../utils/createEmotionCache'
 
 export default class MyDocument extends Document {
 	render() {
 		return (
 			<Html lang='en'>
 				<Head>
+					<link rel='shortcut icon' href='/static/favicon.ico' />
 					<link
 						rel='stylesheet'
 						href='https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap'
 					/>
+					{this.props.emotionStyleTags}
 				</Head>
 				<body>
 					<Main />
@@ -21,6 +23,7 @@ export default class MyDocument extends Document {
 		)
 	}
 }
+
 MyDocument.getInitialProps = async (ctx) => {
 	const originalRenderPage = ctx.renderPage
 
@@ -29,8 +32,10 @@ MyDocument.getInitialProps = async (ctx) => {
 
 	ctx.renderPage = () =>
 		originalRenderPage({
-			// eslint-disable-next-line react/display-name
-			enhanceApp: (App) => (props) => <App emotionCache={cache} {...props} />,
+			enhanceApp: (App) =>
+				function EnhanceApp(props) {
+					return <App emotionCache={cache} {...props} />
+				},
 		})
 
 	const initialProps = await Document.getInitialProps(ctx)
@@ -47,6 +52,6 @@ MyDocument.getInitialProps = async (ctx) => {
 
 	return {
 		...initialProps,
-		styles: [...React.Children.toArray(initialProps.styles), ...emotionStyleTags],
+		emotionStyleTags,
 	}
 }
